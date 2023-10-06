@@ -1,8 +1,15 @@
-import os
-import environ
-from pathlib import Path
-env = environ.Env()
+# permite operaty system => para ingresar a las carpetas del proyecto.
+import os 
 
+# pip install environ para solucionar el error.
+import environ 
+
+
+
+from pathlib import Path
+
+
+env = environ.Env()
 environ.Env.read_env()
 
 
@@ -36,21 +43,25 @@ DJANGO_APPS = [
 PROJECT_APPS=[]
 
 THRID_PARTY_APPS=[
-    'corsheader',
+    'corsheaders',
     'rest_framework',
     'ckeditor',
     'ckeditor_uploader'
 ]
 
+#DJANGO PIDE QUE la variable final se lama installed apps
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THRID_PARTY_APPS
 
-#ckeditor - en la documentacion esta este codigo:
+
+
+#ckeditor - en la documentacion esta este codigo: esta en pypy
 CKEDITOR_CONFIGS ={
     'default': {
         'toolbar': 'full',
         'autoParagraph': False
     }
 }
+
 CKEDITOR_UPLOAD_PATH ='/media/'
 
 
@@ -71,7 +82,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -98,6 +109,7 @@ DATABASES = {
 }
 
 
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -120,21 +132,45 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'es'
+TIME_ZONE = 'UTC-5'
 USE_I18N = True
-
-USE_TZ = True
+USE_TZ = True #time zone
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
+STATIC_ROOT= os.path.join(BASE_DIR, 'static')
 STATIC_URL = 'static/'
-
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'build/static')
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+#https://www.django-rest-framework.org/api-guide/permissions/
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES':[
+        'rest_framework.permission.IsAuthenticatedOrReadOnly'
+    ]
+}
+
+
+CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST_DEV')
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS_DEV')
+# Cuando no estemos en modo DEBUG
+# Cuando es modo despliegue.
+
+if not DEBUG:
+    ALLOWED_HOSTS=env.list('ALLOWED_HOSTS_DEPLOY')
+    CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST_DEPLOY')
+    CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS_DEPLOY')
+    DATABASES= {
+        'default': env.db('DATABASE_URL'),
+        
+    }
+    DATABASES['default']['ATOMIC_REQUESTS'] = True #atomic evita llamados duplicados a la base de datos.
